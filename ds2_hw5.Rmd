@@ -71,22 +71,21 @@ Fit a support vector classifier (linear kernel) to the training data. The linear
 set.seed(0504)
 
 # using package e1071
-linear_svc = tune.svm(mpg_cat ~ .,
+linear_svm = tune.svm(mpg_cat ~ .,
                       data = auto[indexTrain, ],
                       kernel = "linear",
                       cost = exp(seq(-5, 2, len = 50)),
                       scale = TRUE)
 
 # plot misclassification error based on cross validation against tuning parameter(cost)
-plot(linear_svc)
+plot(linear_svm)
 
 # optimal tuning parameter with minimum cross-validation error
-linear_svc$best.parameters
+linear_svm$best.parameters
 
 # best model
-best_linear_svc = linear_svc$best.model
-
-summary(best_linear_svc)
+best_linear_svm = linear_svm$best.model
+summary(best_linear_svm)
 ```
 
 From the results above, the optimum tuning parameter is achieved when cost is 1.535, which minimizes the cross-validation error.
@@ -94,30 +93,53 @@ From the results above, the optimum tuning parameter is achieved when cost is 1.
 
 ```{r}
 # calculate training error rate from confusion matrix
-confusionMatrix(data = linear_svc$best.model$fitted, 
+confusionMatrix(data = linear_svm$best.model$fitted, 
                 reference = auto$mpg_cat[indexTrain])
 ```
 
-Accuracy is 91.67%, therefore training error rate is 8.33%.
+Accuracy is 91.67%, therefore training error rate is 8.33%. We can also do the calculation: the optimal linear support vector classifier with linear kernel incorrectly classifies 23 out of 276 training observations, giving a 8.33% error rate.
 
 ```{r}
 set.seed(0504)
 
-linear_svc_pred = predict(best_linear_svc, newdata = auto[-indexTrain, ])
+linear_svm_pred = predict(best_linear_svm, newdata = auto[-indexTrain, ])
 
 # calculate test error rate from confusion matrix
-confusionMatrix(data = linear_svc_pred, 
+confusionMatrix(data = linear_svm_pred, 
                 reference = auto$mpg_cat[-indexTrain])
 ```
 
-Accuracy is 93.1%, therefore test error rate is 6.9%.
+Accuracy is 93.1%, therefore test error rate is 6.9%. Calculation by hand: the classifier incorrectly classifies 8 out of 116 observations, giving a 6.9% error rate.
 
 
 ### Radio Kernel
 
-Fit a support vector machine with a radial kernel to the training data. This gives a nonlinear decision boundry.
+Fit a support vector machine with a radial kernel to the training data. This gives a nonlinear decision boundary.
 
 ```{r}
+set.seed(0504)
 
+# using package e1071
+radial_svm = tune.svm(mpg_cat ~ .,
+                      data = auto[indexTrain, ],
+                      kernel = "radial",
+                      cost = exp(seq(-3, 8, len = 50)),
+                      gamma = exp(seq(-4, 4, len = 20)),
+                      scale = TRUE)
+
+plot(radial_svm, transform.y = log, transform.x = log, color.palette = terrain.colors)
+
+radial_svm$best.parameters
+
+best_radio_svm = radial_svm$best.model
+summary(radial_svm$best.model)
+```
+
+From the results above, the optimum tuning parameter is achieved when gamma is 0.349 cost is 2.262, which minimizes the cross-validation error.  
+
+```{r}
+# calculate training error rate from confusion matrix
+confusionMatrix(data = linear_svm$best.model$fitted, 
+                reference = auto$mpg_cat[indexTrain])
 ```
 
