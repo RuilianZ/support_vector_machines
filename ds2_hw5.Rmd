@@ -47,6 +47,8 @@ auto = read_csv("auto.csv") %>%
     mpg_cat = fct_relevel(mpg_cat, "low", "high")
   ) %>% 
   as.data.frame()
+
+skimr::skim_without_charts(auto)
 ```
 
 ```{r}
@@ -164,22 +166,26 @@ For support vector machine with radial kernel, the training and test error rate 
 
 ## Hierachical Clustering
 
+### Without scaling
+
 ```{r}
 data(USArrests)
 
 arrests = USArrests %>% as.data.frame()
 
 dim(arrests)
+
+skimr::skim_without_charts(arrests)
 ```
 
 ```{r}
-# hierarchical clustering with complete linkage and Euclidean distance
-hc_complete = hclust(dist(arrests), method = "complete")
+# hierarchical clustering with complete linkage and Euclidean distance (without scaling)
+hc = hclust(dist(arrests), method = "complete")
 ```
 
 ```{r}
 # cut the dendrogram at a height that results in three distinct clusters
-fviz_dend(hc_complete, k = 3,    
+fviz_dend(hc, k = 3,    
           cex = 0.3, 
           palette = "jco",
           color_labels_by_k = TRUE,
@@ -191,3 +197,40 @@ The cluster on the left includes some populous states, such as New York, Califor
 The middle cluster includes some Southern states, such as Missouri, Arkansas, Tennessee, but also some others, like Washington, Massachusetts and New Jersey. 
 The cluster on the right contains some less populous states, like Ohio, Utah, Kentucky, and others.  
 There seems not be any clear pattern pattern of the clustering based on geography, but there might be some grouping tendencies based on population of the states. 
+
+
+### With scaling
+
+```{r}
+# scale and center data
+arrests_scaled = scale(arrests, center = TRUE, scale = TRUE)
+
+# hierarchical clustering with complete linkage and Euclidean distance
+hc_scaled = hclust(dist(arrests_scaled), method = "complete")
+```
+
+```{r}
+# cut the dendrogram at a height that results in three distinct clusters
+fviz_dend(hc_scaled, k = 3,    
+          cex = 0.3, 
+          palette = "jco",
+          color_labels_by_k = TRUE,
+          rect = TRUE, rect_fill = TRUE, rect_border = "jco",
+          labels_track_height = 2.5)
+```
+
+We can see that there are more states in the left cluster than other 2 clusters. And the distribution of the states is quite different from the dendrogram without clustering. 
+
+
+### Discussion
+
+Scaling the variables change the clustering results.  
+ 
+With scaling, one cluster contains South Dakota, West Virginia, any many other of the less populous states; another cluster contains California, Nevada, Texas, New York, and primarily more populous states in major urban metro areas; and a third cluster with Alaska, Alabama, Louisiana, Georgia, and a number of other mostly Southern U.S. states. This is quite different from the dendrogram plotted without scaling.
+
+This is because the clustering algorithms requires the method of calculating distance to be specified, as we are using Euclidean distance here. Without scaling numeric variables, the variables with greater magnitudes might be put more importance. In this case, if we do the classification without scaling, we're more likely to cluster based on `assault` than other variables, since it has greater values.  
+
+In my opinion, the variables should be scaled before the inter-observation dissimilarities are computed in order to ensure the variables are of comparable units.
+
+
+

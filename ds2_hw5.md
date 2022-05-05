@@ -27,7 +27,41 @@ auto = read_csv("auto.csv") %>%
     mpg_cat = fct_relevel(mpg_cat, "low", "high")
   ) %>% 
   as.data.frame()
+
+skimr::skim_without_charts(auto)
 ```
+
+|                                                  |      |
+|:-------------------------------------------------|:-----|
+| Name                                             | auto |
+| Number of rows                                   | 392  |
+| Number of columns                                | 8    |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |      |
+| Column type frequency:                           |      |
+| factor                                           | 3    |
+| numeric                                          | 5    |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |      |
+| Group variables                                  | None |
+
+Data summary
+
+**Variable type: factor**
+
+| skim_variable | n_missing | complete_rate | ordered | n_unique | top_counts                  |
+|:--------------|----------:|--------------:|:--------|---------:|:----------------------------|
+| cylinders     |         0 |             1 | FALSE   |        5 | 4: 199, 8: 103, 6: 83, 3: 4 |
+| origin        |         0 |             1 | FALSE   |        3 | Ame: 245, Jap: 79, Eur: 68  |
+| mpg_cat       |         0 |             1 | FALSE   |        2 | low: 196, hig: 196          |
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |    mean |     sd |   p0 |     p25 |    p50 |     p75 |   p100 |
+|:--------------|----------:|--------------:|--------:|-------:|-----:|--------:|-------:|--------:|-------:|
+| displacement  |         0 |             1 |  194.41 | 104.64 |   68 |  105.00 |  151.0 |  275.75 |  455.0 |
+| horsepower    |         0 |             1 |  104.47 |  38.49 |   46 |   75.00 |   93.5 |  126.00 |  230.0 |
+| weight        |         0 |             1 | 2977.58 | 849.40 | 1613 | 2225.25 | 2803.5 | 3614.75 | 5140.0 |
+| acceleration  |         0 |             1 |   15.54 |   2.76 |    8 |   13.78 |   15.5 |   17.02 |   24.8 |
+| year          |         0 |             1 |   75.98 |   3.68 |   70 |   73.00 |   76.0 |   79.00 |   82.0 |
 
 ``` r
 # split the dataset into two parts: training data (70%) and test data (30%)
@@ -327,6 +361,8 @@ model with radial kernel performs better.
 
 ## Hierachical Clustering
 
+### Without scaling
+
 ``` r
 data(USArrests)
 
@@ -338,13 +374,39 @@ dim(arrests)
     ## [1] 50  4
 
 ``` r
-# hierarchical clustering with complete linkage and Euclidean distance
-hc_complete = hclust(dist(arrests), method = "complete")
+skimr::skim_without_charts(arrests)
+```
+
+|                                                  |         |
+|:-------------------------------------------------|:--------|
+| Name                                             | arrests |
+| Number of rows                                   | 50      |
+| Number of columns                                | 4       |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |         |
+| Column type frequency:                           |         |
+| numeric                                          | 4       |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |         |
+| Group variables                                  | None    |
+
+Data summary
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |   mean |    sd |   p0 |    p25 |    p50 |    p75 |  p100 |
+|:--------------|----------:|--------------:|-------:|------:|-----:|-------:|-------:|-------:|------:|
+| Murder        |         0 |             1 |   7.79 |  4.36 |  0.8 |   4.08 |   7.25 |  11.25 |  17.4 |
+| Assault       |         0 |             1 | 170.76 | 83.34 | 45.0 | 109.00 | 159.00 | 249.00 | 337.0 |
+| UrbanPop      |         0 |             1 |  65.54 | 14.47 | 32.0 |  54.50 |  66.00 |  77.75 |  91.0 |
+| Rape          |         0 |             1 |  21.23 |  9.37 |  7.3 |  15.08 |  20.10 |  26.17 |  46.0 |
+
+``` r
+# hierarchical clustering with complete linkage and Euclidean distance (without scaling)
+hc = hclust(dist(arrests), method = "complete")
 ```
 
 ``` r
 # cut the dendrogram at a height that results in three distinct clusters
-fviz_dend(hc_complete, k = 3,    
+fviz_dend(hc, k = 3,    
           cex = 0.3, 
           palette = "jco",
           color_labels_by_k = TRUE,
@@ -363,3 +425,51 @@ less populous states, like Ohio, Utah, Kentucky, and others.
 There seems not be any clear pattern pattern of the clustering based on
 geography, but there might be some grouping tendencies based on
 population of the states.
+
+### With scaling
+
+``` r
+# scale and center data
+arrests_scaled = scale(arrests, center = TRUE, scale = TRUE)
+
+# hierarchical clustering with complete linkage and Euclidean distance
+hc_scaled = hclust(dist(arrests_scaled), method = "complete")
+```
+
+``` r
+# cut the dendrogram at a height that results in three distinct clusters
+fviz_dend(hc_scaled, k = 3,    
+          cex = 0.3, 
+          palette = "jco",
+          color_labels_by_k = TRUE,
+          rect = TRUE, rect_fill = TRUE, rect_border = "jco",
+          labels_track_height = 2.5)
+```
+
+<img src="ds2_hw5_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+
+We can see that there are more states in the left cluster than other 2
+clusters. And the distribution of the states is quite different from the
+dendrogram without clustering.
+
+### Discussion
+
+Scaling the variables change the clustering results.
+
+With scaling, one cluster contains South Dakota, West Virginia, any many
+other of the less populous states; another cluster contains California,
+Nevada, Texas, New York, and primarily more populous states in major
+urban metro areas; and a third cluster with Alaska, Alabama, Louisiana,
+Georgia, and a number of other mostly Southern U.S. states. This is
+quite different from the dendrogram plotted without scaling.
+
+This is because the clustering algorithms requires the method of
+calculating distance to be specified, as we are using Euclidean distance
+here. Without scaling numeric variables, the variables with greater
+magnitudes might be put more importance. In this case, if we do the
+classification without scaling, we’re more likely to cluster based on
+`assault` than other variables, since it has greater values.
+
+In my opinion, the variables should be scaled before the
+inter-observation dissimilarities are computed in order to ensure the
+variables are of comparable units.
