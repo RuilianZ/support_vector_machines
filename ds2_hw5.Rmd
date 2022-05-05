@@ -1,5 +1,5 @@
 ---
-title: "Data Science II Homewrk 5"
+title: "Data Science II Homework 5"
 author: "Roxy Zhang"
 date: "5/4/2022"
 output:
