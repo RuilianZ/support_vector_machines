@@ -2,8 +2,14 @@
 title: "Data Science II Homewrk 5"
 author: "Roxy Zhang"
 date: "5/4/2022"
-output: github_document
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: yes
+    toc_depth: 3
 ---
+
+\newpage
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
