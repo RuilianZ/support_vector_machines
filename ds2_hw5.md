@@ -98,7 +98,7 @@ summary(best_linear_svm)
     ##  low high
 
 From the results above, the optimum tuning parameter is achieved when
-cost is 1.535, which minimizes the cross-validation error.
+cost is 0.368, which minimizes the cross-validation error.
 
 ``` r
 # calculate training error rate from confusion matrix
@@ -134,10 +134,10 @@ confusionMatrix(data = linear_svm$best.model$fitted,
     ##        'Positive' Class : low             
     ## 
 
-Accuracy is 91.67%, therefore training error rate is 8.33%. We can also
+Accuracy is 90.94%, therefore training error rate is 9.06%. We can also
 do the calculation: the optimal linear support vector classifier with
-linear kernel incorrectly classifies 23 out of 276 training
-observations, giving a 8.33% error rate.
+linear kernel incorrectly classifies 25 out of 276 training
+observations, giving a 9.06% error rate.
 
 ``` r
 set.seed(0504)
@@ -177,11 +177,11 @@ confusionMatrix(data = linear_svm_pred,
     ##        'Positive' Class : low             
     ## 
 
-Accuracy is 93.1%, therefore test error rate is 6.9%. Calculation by
-hand: the classifier incorrectly classifies 8 out of 116 observations,
-giving a 6.9% error rate.
+Accuracy is 91.38%, therefore test error rate is 8.62%. Calculation by
+hand: the classifier incorrectly classifies 10 out of 116 observations,
+giving a 8.62% error rate.
 
-### Radio Kernel
+### Radial Kernel
 
 Fit a support vector machine with a radial kernel to the training data.
 This gives a nonlinear decision boundary.
@@ -210,7 +210,7 @@ radial_svm$best.parameters
     ## 348 0.3490181 2.262175
 
 ``` r
-best_radio_svm = radial_svm$best.model
+best_radial_svm = radial_svm$best.model
 summary(radial_svm$best.model)
 ```
 
@@ -242,7 +242,7 @@ error.
 
 ``` r
 # calculate training error rate from confusion matrix
-confusionMatrix(data = linear_svm$best.model$fitted, 
+confusionMatrix(data = radial_svm$best.model$fitted, 
                 reference = auto$mpg_cat[indexTrain])
 ```
 
@@ -250,26 +250,116 @@ confusionMatrix(data = linear_svm$best.model$fitted,
     ## 
     ##           Reference
     ## Prediction low high
-    ##       low  121    8
-    ##       high  17  130
+    ##       low  130    6
+    ##       high   8  132
+    ##                                          
+    ##                Accuracy : 0.9493         
+    ##                  95% CI : (0.9164, 0.972)
+    ##     No Information Rate : 0.5            
+    ##     P-Value [Acc > NIR] : <2e-16         
+    ##                                          
+    ##                   Kappa : 0.8986         
+    ##                                          
+    ##  Mcnemar's Test P-Value : 0.7893         
+    ##                                          
+    ##             Sensitivity : 0.9420         
+    ##             Specificity : 0.9565         
+    ##          Pos Pred Value : 0.9559         
+    ##          Neg Pred Value : 0.9429         
+    ##              Prevalence : 0.5000         
+    ##          Detection Rate : 0.4710         
+    ##    Detection Prevalence : 0.4928         
+    ##       Balanced Accuracy : 0.9493         
+    ##                                          
+    ##        'Positive' Class : low            
+    ## 
+
+Accuracy is 94.93%, therefore training error rate is 5.07%. We can also
+do the calculation: the optimal linear support vector classifier with
+radial kernel incorrectly classifies 14 out of 276 training
+observations, giving a 5.07% error rate.
+
+``` r
+set.seed(0504)
+
+radial_svm_pred = predict(best_radial_svm, newdata = auto[-indexTrain, ])
+
+# calculate test error rate from confusion matrix
+confusionMatrix(data = radial_svm_pred, 
+                reference = auto$mpg_cat[-indexTrain])
+```
+
+    ## Confusion Matrix and Statistics
+    ## 
+    ##           Reference
+    ## Prediction low high
+    ##       low   56    1
+    ##       high   2   57
     ##                                           
-    ##                Accuracy : 0.9094          
-    ##                  95% CI : (0.8692, 0.9405)
+    ##                Accuracy : 0.9741          
+    ##                  95% CI : (0.9263, 0.9946)
     ##     No Information Rate : 0.5             
     ##     P-Value [Acc > NIR] : <2e-16          
     ##                                           
-    ##                   Kappa : 0.8188          
+    ##                   Kappa : 0.9483          
     ##                                           
-    ##  Mcnemar's Test P-Value : 0.1096          
+    ##  Mcnemar's Test P-Value : 1               
     ##                                           
-    ##             Sensitivity : 0.8768          
-    ##             Specificity : 0.9420          
-    ##          Pos Pred Value : 0.9380          
-    ##          Neg Pred Value : 0.8844          
+    ##             Sensitivity : 0.9655          
+    ##             Specificity : 0.9828          
+    ##          Pos Pred Value : 0.9825          
+    ##          Neg Pred Value : 0.9661          
     ##              Prevalence : 0.5000          
-    ##          Detection Rate : 0.4384          
-    ##    Detection Prevalence : 0.4674          
-    ##       Balanced Accuracy : 0.9094          
+    ##          Detection Rate : 0.4828          
+    ##    Detection Prevalence : 0.4914          
+    ##       Balanced Accuracy : 0.9741          
     ##                                           
     ##        'Positive' Class : low             
     ## 
+
+Accuracy is 97.41%, therefore test error rate is 2.59%. Calculation by
+hand: the classifier incorrectly classifies 3 out of 116 observations,
+giving a 2.59% error rate.
+
+For support vector machine with radial kernel, the training and test
+error rate are both lower than that of svm with linear kernel. So the
+model with radial kernel performs better.
+
+## Hierachical Clustering
+
+``` r
+data(USArrests)
+
+arrests = USArrests %>% as.data.frame()
+
+dim(arrests)
+```
+
+    ## [1] 50  4
+
+``` r
+# hierarchical clustering with complete linkage and Euclidean distance
+hc_complete = hclust(dist(arrests), method = "complete")
+```
+
+``` r
+# cut the dendrogram at a height that results in three distinct clusters
+fviz_dend(hc_complete, k = 3,    
+          cex = 0.3, 
+          palette = "jco",
+          color_labels_by_k = TRUE,
+          rect = TRUE, rect_fill = TRUE, rect_border = "jco",
+          labels_track_height = 2.5)
+```
+
+<img src="ds2_hw5_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+
+The cluster on the left includes some populous states, such as New York,
+California, Florida, North Carolina, Illinois, etc.  
+The middle cluster includes some Southern states, such as Missouri,
+Arkansas, Tennessee, but also some others, like Washington,
+Massachusetts and New Jersey. The cluster on the right contains some
+less populous states, like Ohio, Utah, Kentucky, and others.  
+There seems not be any clear pattern pattern of the clustering based on
+geography, but there might be some grouping tendencies based on
+population of the states.

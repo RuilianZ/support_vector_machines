@@ -88,7 +88,7 @@ best_linear_svm = linear_svm$best.model
 summary(best_linear_svm)
 ```
 
-From the results above, the optimum tuning parameter is achieved when cost is 1.535, which minimizes the cross-validation error.
+From the results above, the optimum tuning parameter is achieved when cost is 0.368, which minimizes the cross-validation error.
 
 
 ```{r}
@@ -97,7 +97,7 @@ confusionMatrix(data = linear_svm$best.model$fitted,
                 reference = auto$mpg_cat[indexTrain])
 ```
 
-Accuracy is 91.67%, therefore training error rate is 8.33%. We can also do the calculation: the optimal linear support vector classifier with linear kernel incorrectly classifies 23 out of 276 training observations, giving a 8.33% error rate.
+Accuracy is 90.94%, therefore training error rate is 9.06%. We can also do the calculation: the optimal linear support vector classifier with linear kernel incorrectly classifies 25 out of 276 training observations, giving a 9.06% error rate.
 
 ```{r}
 set.seed(0504)
@@ -109,10 +109,10 @@ confusionMatrix(data = linear_svm_pred,
                 reference = auto$mpg_cat[-indexTrain])
 ```
 
-Accuracy is 93.1%, therefore test error rate is 6.9%. Calculation by hand: the classifier incorrectly classifies 8 out of 116 observations, giving a 6.9% error rate.
+Accuracy is 91.38%, therefore test error rate is 8.62%. Calculation by hand: the classifier incorrectly classifies 10 out of 116 observations, giving a 8.62% error rate.
 
 
-### Radio Kernel
+### Radial Kernel
 
 Fit a support vector machine with a radial kernel to the training data. This gives a nonlinear decision boundary.
 
@@ -131,7 +131,7 @@ plot(radial_svm, transform.y = log, transform.x = log, color.palette = terrain.c
 
 radial_svm$best.parameters
 
-best_radio_svm = radial_svm$best.model
+best_radial_svm = radial_svm$best.model
 summary(radial_svm$best.model)
 ```
 
@@ -139,7 +139,55 @@ From the results above, the optimum tuning parameter is achieved when gamma is 0
 
 ```{r}
 # calculate training error rate from confusion matrix
-confusionMatrix(data = linear_svm$best.model$fitted, 
+confusionMatrix(data = radial_svm$best.model$fitted, 
                 reference = auto$mpg_cat[indexTrain])
 ```
 
+Accuracy is 94.93%, therefore training error rate is 5.07%. We can also do the calculation: the optimal linear support vector classifier with radial kernel incorrectly classifies 14 out of 276 training observations, giving a 5.07% error rate.
+
+```{r}
+set.seed(0504)
+
+radial_svm_pred = predict(best_radial_svm, newdata = auto[-indexTrain, ])
+
+# calculate test error rate from confusion matrix
+confusionMatrix(data = radial_svm_pred, 
+                reference = auto$mpg_cat[-indexTrain])
+```
+
+Accuracy is 97.41%, therefore test error rate is 2.59%. Calculation by hand: the classifier incorrectly classifies 3 out of 116 observations, giving a 2.59% error rate.
+
+For support vector machine with radial kernel, the training and test error rate are both lower than that of svm with linear kernel. So the model with radial kernel performs better.
+
+
+
+
+## Hierachical Clustering
+
+```{r}
+data(USArrests)
+
+arrests = USArrests %>% as.data.frame()
+
+dim(arrests)
+```
+
+```{r}
+# hierarchical clustering with complete linkage and Euclidean distance
+hc_complete = hclust(dist(arrests), method = "complete")
+```
+
+```{r}
+# cut the dendrogram at a height that results in three distinct clusters
+fviz_dend(hc_complete, k = 3,    
+          cex = 0.3, 
+          palette = "jco",
+          color_labels_by_k = TRUE,
+          rect = TRUE, rect_fill = TRUE, rect_border = "jco",
+          labels_track_height = 2.5)
+```
+
+The cluster on the left includes some populous states, such as New York, California, Florida, North Carolina, Illinois, etc.  
+The middle cluster includes some Southern states, such as Missouri, Arkansas, Tennessee, but also some others, like Washington, Massachusetts and New Jersey. 
+The cluster on the right contains some less populous states, like Ohio, Utah, Kentucky, and others.  
+There seems not be any clear pattern pattern of the clustering based on geography, but there might be some grouping tendencies based on population of the states. 
